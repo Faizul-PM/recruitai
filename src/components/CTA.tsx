@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Building } from "lucide-react";
 
@@ -30,9 +31,12 @@ const CTA = () => {
               <Button
                 size="lg"
                 className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                asChild
               >
-                Start Free
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <Link to="/auth">
+                  Start Free
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
               </Button>
             </div>
 
@@ -51,9 +55,12 @@ const CTA = () => {
                 size="lg"
                 variant="outline"
                 className="w-full border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+                asChild
               >
-                Request Demo
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <Link to="/auth">
+                  Request Demo
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
               </Button>
             </div>
           </div>
