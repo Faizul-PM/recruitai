@@ -1,1 +1,4 @@
 project_id = "cilzbwaanptwvalfhxit"
+
+[functions.screen-cvs]
+verify_jwt = false
