@@ -37,7 +37,7 @@ export const useScreenCVs = () => {
     return text;
   };
 
-  const screenCVs = async (jobDescription: string, selectedCVs: CV[]) => {
+  const screenCVs = async (jobDescription: string, selectedCVs: CV[], userId?: string, userEmail?: string) => {
     if (!jobDescription.trim()) {
       toast({
         variant: "destructive",
@@ -60,6 +60,28 @@ export const useScreenCVs = () => {
     setResults(null);
 
     try {
+      // Send data to n8n webhook when AI screening starts
+      const webhookData = {
+        action: "run_ai_screening",
+        userId: userId || null,
+        userEmail: userEmail || null,
+        jobDescription,
+        selectedCVs: selectedCVs.map(cv => ({
+          id: cv.id,
+          fileName: cv.file_name,
+          filePath: cv.file_path,
+        })),
+        totalSelected: selectedCVs.length,
+        timestamp: new Date().toISOString(),
+      };
+
+      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/f1bcc65a-fd06-4901-b78c-a6fa0d4f60c5", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(webhookData),
+      }).catch(err => console.error("Failed to send AI screening webhook:", err));
       // Download and extract text from each CV
       const cvTexts = await Promise.all(
         selectedCVs.map(async (cv) => {
