@@ -330,7 +330,7 @@ const Dashboard = () => {
 
   const handleRunScreening = async () => {
     const selectedCVData = cvs.filter(cv => selectedCVs.has(cv.id));
-    await screenCVs(jobDescription, selectedCVData);
+    await screenCVs(jobDescription, selectedCVData, user?.id, user?.email);
     if (!screening) {
       setCurrentStep("results");
     }
