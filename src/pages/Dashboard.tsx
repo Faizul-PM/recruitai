@@ -144,6 +144,32 @@ const Dashboard = () => {
         continue;
       }
 
+      // Send CV data to n8n webhook
+      try {
+        const { data: publicUrlData } = supabase.storage
+          .from("cvs")
+          .getPublicUrl(filePath);
+
+        await fetch("https://faizulislam.app.n8n.cloud/webhook-test/https://lovable.dev/projects/d8658c40-62d5-48a1-9026-79a6eafcb5f4", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            filePath: filePath,
+            fileSize: file.size,
+            fileUrl: publicUrlData.publicUrl,
+            userId: user.id,
+            userEmail: user.email,
+            uploadedAt: new Date().toISOString(),
+          }),
+        });
+      } catch (webhookError) {
+        console.error("Webhook error:", webhookError);
+        // Continue even if webhook fails - CV is already saved
+      }
+
       uploadedCount++;
     }
 
