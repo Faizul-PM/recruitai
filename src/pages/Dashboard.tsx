@@ -279,7 +279,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleStartScreening = () => {
+  const handleStartScreening = async () => {
     if (selectedCVs.size === 0) {
       toast({
         variant: "destructive",
@@ -288,6 +288,43 @@ const Dashboard = () => {
       });
       return;
     }
+
+    // Send selected CVs data to webhook
+    try {
+      const selectedCVData = cvs.filter(cv => selectedCVs.has(cv.id));
+      const cvDetails = selectedCVData.map(cv => {
+        const { data: publicUrlData } = supabase.storage
+          .from("cvs")
+          .getPublicUrl(cv.file_path);
+        
+        return {
+          id: cv.id,
+          fileName: cv.file_name,
+          filePath: cv.file_path,
+          fileSize: cv.file_size,
+          fileUrl: publicUrlData.publicUrl,
+          uploadedAt: cv.uploaded_at,
+        };
+      });
+
+      await fetch("https://faizulislam.app.n8n.cloud/webhook-test/e7f6af64-a9c8-4ed6-ae45-3f58f467a603", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "start_screening",
+          userId: user?.id,
+          userEmail: user?.email,
+          selectedCVs: cvDetails,
+          totalSelected: selectedCVs.size,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch (webhookError) {
+      console.error("Webhook error:", webhookError);
+    }
+
     setCurrentStep("job-description");
   };
 
