@@ -150,7 +150,7 @@ const Dashboard = () => {
           .from("cvs")
           .getPublicUrl(filePath);
 
-        await fetch("https://faizulislam.app.n8n.cloud/webhook-test/https://lovable.dev/projects/d8658c40-62d5-48a1-9026-79a6eafcb5f4", {
+        await fetch("https://faizulislam.app.n8n.cloud/webhook-test/9e3837ee-a381-4ad2-acdd-cd1de73979c0", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
