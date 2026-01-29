@@ -307,7 +307,7 @@ const Dashboard = () => {
         };
       });
 
-      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/bee9e0e8-adf6-4aa0-9408-9d77af6d6bc3", {
+      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/39e32d72-5d1a-4c9b-8876-060ead36fad3", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
