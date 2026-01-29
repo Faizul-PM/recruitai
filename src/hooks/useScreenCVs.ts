@@ -75,7 +75,7 @@ export const useScreenCVs = () => {
         timestamp: new Date().toISOString(),
       };
 
-      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/cv-analysis", {
+      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/9f14d533-9f56-496e-8eed-0e8fd02cb5f1", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
