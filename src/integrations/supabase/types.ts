@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          candidate_name: string | null
+          created_at: string
+          cv_id: string | null
+          description: string | null
+          end_time: string | null
+          event_type: string
+          id: string
+          is_completed: boolean | null
+          start_time: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          candidate_name?: string | null
+          created_at?: string
+          cv_id?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_type?: string
+          id?: string
+          is_completed?: boolean | null
+          start_time: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          candidate_name?: string | null
+          created_at?: string
+          cv_id?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_type?: string
+          id?: string
+          is_completed?: boolean | null
+          start_time?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_cv_id_fkey"
+            columns: ["cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cv_screenings: {
+        Row: {
+          ats_score: number | null
+          cv_id: string | null
+          id: string
+          job_role_id: string | null
+          missing_keywords: string[] | null
+          rejection_reasons: string[] | null
+          screened_at: string
+          selection_reasons: string[] | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          ats_score?: number | null
+          cv_id?: string | null
+          id?: string
+          job_role_id?: string | null
+          missing_keywords?: string[] | null
+          rejection_reasons?: string[] | null
+          screened_at?: string
+          selection_reasons?: string[] | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          ats_score?: number | null
+          cv_id?: string | null
+          id?: string
+          job_role_id?: string | null
+          missing_keywords?: string[] | null
+          rejection_reasons?: string[] | null
+          screened_at?: string
+          selection_reasons?: string[] | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cv_screenings_cv_id_fkey"
+            columns: ["cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cv_screenings_job_role_id_fkey"
+            columns: ["job_role_id"]
+            isOneToOne: false
+            referencedRelation: "job_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cvs: {
         Row: {
           file_name: string
@@ -37,6 +141,86 @@ export type Database = {
           file_size?: number | null
           id?: string
           uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emails: {
+        Row: {
+          body: string
+          created_at: string
+          cv_id: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          cv_id?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          cv_id?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_cv_id_fkey"
+            columns: ["cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          requirements: string[] | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          requirements?: string[] | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          requirements?: string[] | null
+          status?: string
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
