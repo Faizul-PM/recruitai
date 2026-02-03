@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Briefcase, Trash2, Edit, Users, Calendar } from "lucide-react";
+import { Loader2, Plus, Briefcase, Trash2, Edit, Calendar, Users, Building } from "lucide-react";
 import { format } from "date-fns";
 
 interface JobRole {
@@ -133,12 +135,13 @@ export default function JobRoles() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "outline"> = {
-      open: "default",
-      closed: "secondary",
-      draft: "outline"
+    const config: Record<string, { variant: "default" | "secondary" | "outline"; className: string }> = {
+      open: { variant: "default", className: "bg-chart-1 hover:bg-chart-1/80" },
+      closed: { variant: "secondary", className: "" },
+      draft: { variant: "outline", className: "" }
     };
-    return <Badge variant={variants[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
+    const { variant, className } = config[status] || config.draft;
+    return <Badge variant={variant} className={className}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
   };
 
   if (loading) {
@@ -151,103 +154,109 @@ export default function JobRoles() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-serif">Job Roles</h1>
-          <p className="text-muted-foreground">Manage open positions and match candidates</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Job Role
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{editingJob ? "Edit Job Role" : "Create Job Role"}</DialogTitle>
-              <DialogDescription>
-                {editingJob ? "Update the job role details" : "Add a new position to your listings"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Job Title *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Senior Software Engineer"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Job description..."
-                  rows={4}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Requirements (one per line)</Label>
-                <Textarea
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  placeholder="5+ years of experience&#10;Bachelor's degree&#10;Strong communication skills"
-                  rows={4}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+      <PageHeader
+        title="Job Roles"
+        description="Manage open positions and match candidates"
+        icon={<Briefcase className="w-6 h-6 text-primary" />}
+        actions={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenDialog()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Job Role
               </Button>
-              <Button onClick={handleSave}>
-                {editingJob ? "Update" : "Create"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingJob ? "Edit Job Role" : "Create Job Role"}</DialogTitle>
+                <DialogDescription>
+                  {editingJob ? "Update the job role details" : "Add a new position to your listings"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Job Title *</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g., Senior Software Engineer"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData({ ...formData, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Job description..."
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Requirements (one per line)</Label>
+                  <Textarea
+                    value={formData.requirements}
+                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                    placeholder="5+ years of experience&#10;Bachelor's degree&#10;Strong communication skills"
+                    rows={4}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>
+                  {editingJob ? "Update" : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {jobs.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No job roles created yet</p>
-            <Button className="mt-4" onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First Job Role
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<Briefcase className="w-8 h-8 text-primary" />}
+          title="No job roles created yet"
+          description="Create your first job role to start matching candidates to positions."
+          action={{
+            label: "Create Your First Job Role",
+            onClick: () => handleOpenDialog(),
+            icon: <Plus className="h-4 w-4" />
+          }}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
-            <Card key={job.id} className="hover:shadow-md transition-shadow">
+            <Card key={job.id} className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{job.title}</CardTitle>
-                    {getStatusBadge(job.status)}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center shrink-0">
+                      <Building className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base truncate">{job.title}</CardTitle>
+                      <div className="mt-1.5">{getStatusBadge(job.status)}</div>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -265,16 +274,16 @@ export default function JobRoles() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {job.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {job.description}
                   </p>
                 )}
                 {job.requirements && job.requirements.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {job.requirements.slice(0, 3).map((req, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
+                      <Badge key={i} variant="outline" className="text-xs bg-accent/30 border-accent-foreground/20">
                         {req.length > 20 ? req.slice(0, 20) + "..." : req}
                       </Badge>
                     ))}
@@ -285,9 +294,9 @@ export default function JobRoles() {
                     )}
                   </div>
                 )}
-                <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
+                <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-border/50">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
                     {format(new Date(job.created_at), "MMM d, yyyy")}
                   </span>
                 </div>
