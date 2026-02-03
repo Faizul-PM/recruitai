@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Calendar as CalendarIcon, Clock, User, Trash2 } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Clock, User, Trash2, Video, Bell, Target } from "lucide-react";
 import { format, isSameDay, startOfDay } from "date-fns";
 
 interface CalendarEvent {
@@ -128,18 +129,14 @@ export default function CalendarPage() {
 
   const eventDates = events.map(e => startOfDay(new Date(e.start_time)));
 
-  const getEventTypeBadge = (type: string) => {
-    const colors: Record<string, string> = {
-      interview: "bg-chart-1 text-white",
-      task: "bg-chart-2 text-white",
-      reminder: "bg-chart-4 text-white",
-      deadline: "bg-destructive text-destructive-foreground"
+  const getEventTypeConfig = (type: string) => {
+    const config: Record<string, { icon: typeof Video; color: string; bg: string }> = {
+      interview: { icon: Video, color: "text-chart-1", bg: "bg-chart-1" },
+      task: { icon: Target, color: "text-chart-2", bg: "bg-chart-2" },
+      reminder: { icon: Bell, color: "text-chart-4", bg: "bg-chart-4" },
+      deadline: { icon: Clock, color: "text-destructive", bg: "bg-destructive" }
     };
-    return (
-      <Badge className={colors[type] || "bg-muted"}>
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-      </Badge>
-    );
+    return config[type] || config.task;
   };
 
   if (loading) {
@@ -152,98 +149,99 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-serif">Calendar</h1>
-          <p className="text-muted-foreground">Manage interviews, tasks, and reminders</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Event</DialogTitle>
-              <DialogDescription>Add a new event to your calendar</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Title *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Event title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Event Type</Label>
-                <Select
-                  value={formData.event_type}
-                  onValueChange={(value) => setFormData({ ...formData, event_type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="interview">Interview</SelectItem>
-                    <SelectItem value="task">Task</SelectItem>
-                    <SelectItem value="reminder">Reminder</SelectItem>
-                    <SelectItem value="deadline">Deadline</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Start Time *</Label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>End Time</Label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                  />
-                </div>
-              </div>
-              {formData.event_type === "interview" && (
-                <div className="space-y-2">
-                  <Label>Candidate Name</Label>
-                  <Input
-                    value={formData.candidate_name}
-                    onChange={(e) => setFormData({ ...formData, candidate_name: e.target.value })}
-                    placeholder="Candidate name"
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Event description"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+      <PageHeader
+        title="Calendar"
+        description="Manage interviews, tasks, and reminders"
+        icon={<CalendarIcon className="w-6 h-6 text-primary" />}
+        actions={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Event
               </Button>
-              <Button onClick={handleCreateEvent}>Create Event</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Event</DialogTitle>
+                <DialogDescription>Add a new event to your calendar</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Title *</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Event title"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Event Type</Label>
+                  <Select
+                    value={formData.event_type}
+                    onValueChange={(value) => setFormData({ ...formData, event_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="interview">Interview</SelectItem>
+                      <SelectItem value="task">Task</SelectItem>
+                      <SelectItem value="reminder">Reminder</SelectItem>
+                      <SelectItem value="deadline">Deadline</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Start Time *</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Time</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                    />
+                  </div>
+                </div>
+                {formData.event_type === "interview" && (
+                  <div className="space-y-2">
+                    <Label>Candidate Name</Label>
+                    <Input
+                      value={formData.candidate_name}
+                      onChange={(e) => setFormData({ ...formData, candidate_name: e.target.value })}
+                      placeholder="Candidate name"
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Event description"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateEvent}>Create Event</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[350px_1fr]">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+        <Card className="self-start">
           <CardContent className="p-4">
             <Calendar
               mode="single"
@@ -253,7 +251,11 @@ export default function CalendarPage() {
                 hasEvent: eventDates
               }}
               modifiersStyles={{
-                hasEvent: { fontWeight: "bold", textDecoration: "underline" }
+                hasEvent: { 
+                  fontWeight: "bold", 
+                  backgroundColor: "hsl(var(--primary) / 0.1)",
+                  borderRadius: "50%"
+                }
               }}
               className="w-full"
             />
@@ -261,68 +263,88 @@ export default function CalendarPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              {format(selectedDate, "EEEE, MMMM d, yyyy")}
-            </CardTitle>
-            <CardDescription>
-              {eventsForSelectedDate.length} event(s) scheduled
-            </CardDescription>
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <CalendarIcon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">
+                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                </CardTitle>
+                <CardDescription>
+                  {eventsForSelectedDate.length} event(s) scheduled
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             {eventsForSelectedDate.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No events scheduled for this day
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                  <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">No events scheduled for this day</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {eventsForSelectedDate.map((event) => (
-                  <div
-                    key={event.id}
-                    className={`p-4 rounded-lg border ${event.is_completed ? "opacity-60" : ""}`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={event.is_completed}
-                          onCheckedChange={() => handleToggleComplete(event)}
-                        />
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className={`font-medium ${event.is_completed ? "line-through" : ""}`}>
-                              {event.title}
-                            </span>
-                            {getEventTypeBadge(event.event_type)}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(event.start_time), "h:mm a")}
-                              {event.end_time && ` - ${format(new Date(event.end_time), "h:mm a")}`}
-                            </span>
-                            {event.candidate_name && (
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                {event.candidate_name}
+                {eventsForSelectedDate.map((event) => {
+                  const config = getEventTypeConfig(event.event_type);
+                  const EventIcon = config.icon;
+                  return (
+                    <div
+                      key={event.id}
+                      className={`p-4 rounded-xl border transition-all hover:shadow-sm ${
+                        event.is_completed ? "opacity-60 bg-muted/30" : "bg-card"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={event.is_completed}
+                            onCheckedChange={() => handleToggleComplete(event)}
+                            className="mt-1"
+                          />
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${event.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                                {event.title}
                               </span>
+                              <Badge className={`${config.bg} text-primary-foreground text-xs`}>
+                                <EventIcon className="h-3 w-3 mr-1" />
+                                {event.event_type.charAt(0).toUpperCase() + event.event_type.slice(1)}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5" />
+                                {format(new Date(event.start_time), "h:mm a")}
+                                {event.end_time && ` - ${format(new Date(event.end_time), "h:mm a")}`}
+                              </span>
+                              {event.candidate_name && (
+                                <span className="flex items-center gap-1.5">
+                                  <User className="h-3.5 w-3.5" />
+                                  {event.candidate_name}
+                                </span>
+                              )}
+                            </div>
+                            {event.description && (
+                              <p className="text-sm text-muted-foreground">{event.description}</p>
                             )}
                           </div>
-                          {event.description && (
-                            <p className="text-sm text-muted-foreground">{event.description}</p>
-                          )}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(event.id)}
+                          className="shrink-0 opacity-0 hover:opacity-100 focus:opacity-100"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(event.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

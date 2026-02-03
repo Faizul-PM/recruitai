@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Mail, Send, Trash2, Calendar, User } from "lucide-react";
+import { Loader2, Plus, Mail, Send, Trash2, Calendar, User, Inbox, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface Email {
@@ -69,7 +71,6 @@ export default function EmailPage() {
 
     setSending(true);
 
-    // Save email to database
     const { error } = await supabase.from("emails").insert({
       user_id: user.id,
       recipient_email: formData.recipient_email,
@@ -100,13 +101,13 @@ export default function EmailPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive"> = {
-      sent: "default",
-      draft: "secondary",
-      failed: "destructive"
+  const getStatusConfig = (status: string) => {
+    const config: Record<string, { icon: typeof CheckCircle; color: string; bg: string }> = {
+      sent: { icon: CheckCircle, color: "text-chart-1", bg: "bg-chart-1" },
+      draft: { icon: Inbox, color: "text-muted-foreground", bg: "bg-muted" },
+      failed: { icon: XCircle, color: "text-destructive", bg: "bg-destructive" }
     };
-    return <Badge variant={variants[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
+    return config[status] || config.draft;
   };
 
   if (loading) {
@@ -119,133 +120,142 @@ export default function EmailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-serif">Email</h1>
-          <p className="text-muted-foreground">Send emails and view history</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Compose Email
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Compose Email</DialogTitle>
-              <DialogDescription>Send an email to a candidate</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+      <PageHeader
+        title="Email"
+        description="Send emails and view history"
+        icon={<Mail className="w-6 h-6 text-primary" />}
+        actions={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Compose Email
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Compose Email</DialogTitle>
+                <DialogDescription>Send an email to a candidate</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Recipient Email *</Label>
+                    <Input
+                      type="email"
+                      value={formData.recipient_email}
+                      onChange={(e) => setFormData({ ...formData, recipient_email: e.target.value })}
+                      placeholder="candidate@example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Recipient Name</Label>
+                    <Input
+                      value={formData.recipient_name}
+                      onChange={(e) => setFormData({ ...formData, recipient_name: e.target.value })}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label>Recipient Email *</Label>
+                  <Label>Subject *</Label>
                   <Input
-                    type="email"
-                    value={formData.recipient_email}
-                    onChange={(e) => setFormData({ ...formData, recipient_email: e.target.value })}
-                    placeholder="candidate@example.com"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    placeholder="Interview Invitation"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Recipient Name</Label>
-                  <Input
-                    value={formData.recipient_name}
-                    onChange={(e) => setFormData({ ...formData, recipient_name: e.target.value })}
-                    placeholder="John Doe"
+                  <Label>Message *</Label>
+                  <Textarea
+                    value={formData.body}
+                    onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                    placeholder="Write your message..."
+                    rows={6}
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Subject *</Label>
-                <Input
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="Interview Invitation"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Message *</Label>
-                <Textarea
-                  value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-                  placeholder="Write your message..."
-                  rows={6}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSendEmail} disabled={sending}>
-                {sending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Email
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSendEmail} disabled={sending} className="gap-2">
+                  {sending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Send Email
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {emails.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Mail className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No emails sent yet</p>
-            <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Send Your First Email
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<Mail className="w-8 h-8 text-primary" />}
+          title="No emails sent yet"
+          description="Compose and send emails to candidates directly from your dashboard."
+          action={{
+            label: "Send Your First Email",
+            onClick: () => setIsDialogOpen(true),
+            icon: <Plus className="h-4 w-4" />
+          }}
+        />
       ) : (
         <div className="space-y-3">
-          {emails.map((email) => (
-            <Card key={email.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Mail className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium truncate">{email.subject}</span>
-                        {getStatusBadge(email.status)}
+          {emails.map((email) => {
+            const statusConfig = getStatusConfig(email.status);
+            const StatusIcon = statusConfig.icon;
+            return (
+              <Card key={email.id} className="group hover:shadow-lg hover:border-primary/30 transition-all duration-300">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center shrink-0">
+                        <Mail className="h-6 w-6 text-primary" />
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {email.recipient_name || email.recipient_email}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {email.sent_at ? format(new Date(email.sent_at), "MMM d, yyyy h:mm a") : "Draft"}
-                        </span>
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold truncate">{email.subject}</span>
+                          <Badge className={`${statusConfig.bg} text-primary-foreground text-xs gap-1`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {email.status.charAt(0).toUpperCase() + email.status.slice(1)}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                          <span className="flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5" />
+                            {email.recipient_name || email.recipient_email}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {email.sent_at ? format(new Date(email.sent_at), "MMM d, yyyy h:mm a") : "Draft"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{email.body}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{email.body}</p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(email.id)}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(email.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
