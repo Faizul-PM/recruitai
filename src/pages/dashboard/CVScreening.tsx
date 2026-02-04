@@ -293,7 +293,7 @@ export default function CVScreening() {
         };
       });
 
-      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/39e32d72-5d1a-4c9b-8876-060ead36fad3", {
+      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/5d66bc10-e0cb-4954-9e26-1b4e86bdbd63", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
