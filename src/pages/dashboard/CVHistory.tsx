@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { Loader2, FileText, Download, Calendar, TrendingUp, TrendingDown, Minus, History, Eye, Users, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Loader2, FileText, Download, Calendar, TrendingUp, TrendingDown, Minus, History, Eye, Users, CheckCircle2, XCircle, Clock, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 
 interface CVWithScreening {
@@ -102,14 +102,14 @@ export default function CVHistory() {
 
   const getStatusBadge = (status: string) => {
     const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className: string; icon: React.ReactNode }> = {
-      selected: { variant: "default", className: "bg-chart-1 hover:bg-chart-1/80 border-0", icon: <CheckCircle2 className="h-3 w-3" /> },
-      rejected: { variant: "destructive", className: "border-0", icon: <XCircle className="h-3 w-3" /> },
-      review: { variant: "secondary", className: "bg-chart-4 text-foreground hover:bg-chart-4/80 border-0", icon: <Clock className="h-3 w-3" /> },
+      selected: { variant: "default", className: "bg-primary hover:bg-primary/90 border-0 shadow-sm", icon: <CheckCircle2 className="h-3 w-3" /> },
+      rejected: { variant: "destructive", className: "border-0 shadow-sm", icon: <XCircle className="h-3 w-3" /> },
+      review: { variant: "secondary", className: "bg-chart-4 text-foreground hover:bg-chart-4/80 border-0 shadow-sm", icon: <Clock className="h-3 w-3" /> },
       pending: { variant: "outline", className: "bg-muted/50", icon: <Clock className="h-3 w-3" /> }
     };
     const { variant, className, icon } = config[status] || config.pending;
     return (
-      <Badge variant={variant} className={`${className} flex items-center gap-1 capitalize`}>
+      <Badge variant={variant} className={`${className} flex items-center gap-1.5 capitalize font-medium`}>
         {icon}
         {status}
       </Badge>
@@ -117,10 +117,10 @@ export default function CVHistory() {
   };
 
   const getScoreDisplay = (score: number | null) => {
-    if (score === null) return { icon: Minus, color: "text-muted-foreground", bg: "bg-muted/50", ring: "ring-muted" };
-    if (score >= 70) return { icon: TrendingUp, color: "text-chart-1", bg: "bg-chart-1/10", ring: "ring-chart-1/30" };
-    if (score >= 40) return { icon: Minus, color: "text-chart-4", bg: "bg-chart-4/10", ring: "ring-chart-4/30" };
-    return { icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10", ring: "ring-destructive/30" };
+    if (score === null) return { icon: Minus, color: "text-muted-foreground", bg: "bg-muted/50", gradient: "from-muted/30 to-muted/10" };
+    if (score >= 70) return { icon: TrendingUp, color: "text-primary", bg: "bg-primary/10", gradient: "from-primary/20 to-primary/5" };
+    if (score >= 40) return { icon: Minus, color: "text-chart-4", bg: "bg-chart-4/10", gradient: "from-chart-4/20 to-chart-4/5" };
+    return { icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10", gradient: "from-destructive/20 to-destructive/5" };
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -141,22 +141,26 @@ export default function CVHistory() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64 animate-fade-in">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center shadow-lg">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+            <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping" />
+            <div className="absolute -inset-2 rounded-full border border-primary/10 animate-pulse" />
           </div>
-          <p className="text-muted-foreground text-sm">Loading CV history...</p>
+          <div className="text-center">
+            <p className="text-foreground font-medium">Loading CV History</p>
+            <p className="text-muted-foreground text-sm">Fetching your candidates...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <PageHeader
         title="CV History"
         description="View all uploaded CVs and their screening results"
@@ -166,64 +170,76 @@ export default function CVHistory() {
       {/* Stats Section */}
       {cvs.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total CVs"
-            value={totalCVs}
-            icon={<FileText className="h-5 w-5 text-primary" />}
-          />
-          <StatsCard
-            title="Total Screenings"
-            value={totalScreenings}
-            icon={<Eye className="h-5 w-5 text-primary" />}
-          />
-          <StatsCard
-            title="Selected Candidates"
-            value={selectedCount}
-            icon={<Users className="h-5 w-5 text-primary" />}
-          />
-          <StatsCard
-            title="Avg. ATS Score"
-            value={`${Math.round(avgScore)}%`}
-            icon={<TrendingUp className="h-5 w-5 text-primary" />}
-          />
+          <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <StatsCard
+              title="Total CVs"
+              value={totalCVs}
+              icon={<FileText className="h-5 w-5 text-primary" />}
+            />
+          </div>
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <StatsCard
+              title="Total Screenings"
+              value={totalScreenings}
+              icon={<Eye className="h-5 w-5 text-primary" />}
+            />
+          </div>
+          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <StatsCard
+              title="Selected Candidates"
+              value={selectedCount}
+              icon={<Users className="h-5 w-5 text-primary" />}
+            />
+          </div>
+          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <StatsCard
+              title="Avg. ATS Score"
+              value={`${Math.round(avgScore)}%`}
+              icon={<TrendingUp className="h-5 w-5 text-primary" />}
+            />
+          </div>
         </div>
       )}
 
       {cvs.length === 0 ? (
-        <EmptyState
-          icon={<FileText className="w-8 h-8 text-primary" />}
-          title="No CVs uploaded yet"
-          description="Start by uploading some candidate CVs to see their history and screening results here."
-        />
+        <div className="animate-scale-in">
+          <EmptyState
+            icon={<FileText className="w-8 h-8 text-primary" />}
+            title="No CVs uploaded yet"
+            description="Start by uploading some candidate CVs to see their history and screening results here."
+          />
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {cvs.map((cv) => (
+          {cvs.map((cv, index) => (
             <Card 
               key={cv.id} 
-              className="group relative overflow-hidden hover:shadow-xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-1"
+              className="group relative overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 animate-fade-in"
+              style={{ animationDelay: `${0.1 * (index % 6)}s` }}
             >
-              {/* Decorative gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Verdant gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
               <CardHeader className="pb-4 relative">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm">
+                    <div className="relative hover-scale">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/25 via-primary/15 to-accent/30 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-500">
                         <FileText className="h-7 w-7 text-primary" />
                       </div>
                       {cv.screenings.length > 0 && (
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-chart-1 flex items-center justify-center text-[10px] font-bold text-primary-foreground ring-2 ring-card">
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-primary to-chart-1 flex items-center justify-center text-[11px] font-bold text-primary-foreground ring-2 ring-card shadow-sm">
                           {cv.screenings.length}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base font-semibold truncate group-hover:text-primary transition-colors">
+                      <CardTitle className="text-base font-semibold truncate group-hover:text-primary transition-colors duration-300">
                         {cv.file_name}
                       </CardTitle>
-                      <CardDescription className="text-xs mt-1 flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground">
+                      <CardDescription className="text-xs mt-1.5">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/50 text-accent-foreground font-medium">
                           {formatFileSize(cv.file_size)}
                         </span>
                       </CardDescription>
@@ -233,7 +249,7 @@ export default function CVHistory() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDownload(cv)}
-                    className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary/10 hover:text-primary"
+                    className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:scale-110"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
@@ -241,42 +257,42 @@ export default function CVHistory() {
               </CardHeader>
               
               <CardContent className="space-y-4 relative">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
-                  <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                  <span>Uploaded {format(new Date(cv.uploaded_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                <div className="flex items-center gap-2.5 text-xs text-muted-foreground bg-gradient-to-r from-muted/40 to-muted/20 rounded-xl px-4 py-2.5 border border-border/30">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Uploaded {format(new Date(cv.uploaded_at), "MMM d, yyyy")}</span>
                 </div>
 
                 {cv.screenings.length > 0 ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <Eye className="h-3.5 w-3.5 text-primary" />
+                      <p className="text-xs font-semibold text-foreground flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
                         Screening Results
                       </p>
-                      <span className="text-xs text-muted-foreground">
-                        {cv.screenings.length} {cv.screenings.length === 1 ? 'screening' : 'screenings'}
+                      <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-full">
+                        {cv.screenings.length} {cv.screenings.length === 1 ? 'result' : 'results'}
                       </span>
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       {cv.screenings.slice(0, 2).map((screening) => {
                         const scoreDisplay = getScoreDisplay(screening.ats_score);
                         const ScoreIcon = scoreDisplay.icon;
                         return (
                           <div
                             key={screening.id}
-                            className={`flex items-center justify-between p-3 rounded-xl ${scoreDisplay.bg} border border-border/50 ring-1 ${scoreDisplay.ring} transition-all duration-300 hover:scale-[1.02]`}
+                            className={`flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r ${scoreDisplay.gradient} border border-border/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-default`}
                           >
                             <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-xl ${scoreDisplay.bg} flex items-center justify-center`}>
+                              <div className={`w-11 h-11 rounded-xl ${scoreDisplay.bg} flex items-center justify-center shadow-sm`}>
                                 <ScoreIcon className={`h-5 w-5 ${scoreDisplay.color}`} />
                               </div>
                               <div>
-                                <span className={`text-lg font-bold ${scoreDisplay.color}`}>
+                                <span className={`text-xl font-bold ${scoreDisplay.color}`}>
                                   {screening.ats_score !== null ? `${screening.ats_score}%` : "N/A"}
                                 </span>
                                 {screening.job_role && (
-                                  <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                                  <p className="text-xs text-muted-foreground truncate max-w-[100px]">
                                     {screening.job_role.title}
                                   </p>
                                 )}
@@ -289,18 +305,19 @@ export default function CVHistory() {
                     </div>
                     
                     {cv.screenings.length > 2 && (
-                      <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-primary/5">
-                        +{cv.screenings.length - 2} more screenings
+                      <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl">
+                        <Eye className="h-3.5 w-3.5 mr-1.5" />
+                        View {cv.screenings.length - 2} more screenings
                       </Button>
                     )}
                   </div>
                 ) : (
-                  <div className="p-6 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 border border-dashed border-border text-center">
-                    <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-2">
-                      <Clock className="h-5 w-5 text-muted-foreground" />
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-accent/30 via-accent/20 to-transparent border border-dashed border-primary/20 text-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center mx-auto mb-3 shadow-sm">
+                      <Clock className="h-6 w-6 text-primary/70" />
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground">Not screened yet</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Run AI screening to analyze</p>
+                    <p className="text-sm font-semibold text-foreground">Not screened yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">Run AI screening to analyze this CV</p>
                   </div>
                 )}
               </CardContent>
