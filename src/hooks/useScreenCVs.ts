@@ -14,6 +14,27 @@ export const useScreenCVs = () => {
   const [results, setResults] = useState<CVResult[] | null>(null);
   const { toast } = useToast();
 
+  const friendlyErrorMessage = (err: unknown) => {
+    const raw = err instanceof Error ? err.message : String(err);
+
+    // Supabase functions.invoke sometimes wraps JSON in the message, e.g.
+    // "Edge function returned 402: Error, {\"error\":\"AI credits exhausted...\"}"
+    const jsonStart = raw.indexOf("{");
+    if (jsonStart !== -1) {
+      try {
+        const maybeJson = raw.slice(jsonStart);
+        const parsed = JSON.parse(maybeJson);
+        if (typeof parsed?.error === "string" && parsed.error.trim()) {
+          return parsed.error;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return raw;
+  };
+
   const extractTextFromBlob = async (blob: Blob, fileName: string): Promise<string> => {
     // For PDF files, we'll send the raw text if it's extractable
     // For other files, we read as text
@@ -37,14 +58,19 @@ export const useScreenCVs = () => {
     return text;
   };
 
-  const screenCVs = async (jobDescription: string, selectedCVs: CV[], userId?: string, userEmail?: string) => {
+  const screenCVs = async (
+    jobDescription: string,
+    selectedCVs: CV[],
+    userId?: string,
+    userEmail?: string
+  ): Promise<CVResult[]> => {
     if (!jobDescription.trim()) {
       toast({
         variant: "destructive",
         title: "Job description required",
         description: "Please enter a job description to screen CVs against.",
       });
-      return;
+      throw new Error("Job description required");
     }
 
     if (selectedCVs.length === 0) {
@@ -53,7 +79,7 @@ export const useScreenCVs = () => {
         title: "No CVs selected",
         description: "Please select at least one CV to screen.",
       });
-      return;
+      throw new Error("No CVs selected");
     }
 
     setScreening(true);
@@ -128,13 +154,19 @@ export const useScreenCVs = () => {
         description: `${selected} of ${data.results.length} candidates shortlisted.`,
       });
 
+      return data.results as CVResult[];
+
     } catch (error) {
       console.error("Screening error:", error);
+      const message = friendlyErrorMessage(error);
       toast({
         variant: "destructive",
         title: "Screening failed",
-        description: error instanceof Error ? error.message : "Failed to screen CVs. Please try again.",
+        description: message || "Failed to screen CVs. Please try again.",
       });
+
+      // Important: rethrow so the caller can avoid navigating to the Results step
+      throw error;
     } finally {
       setScreening(false);
     }

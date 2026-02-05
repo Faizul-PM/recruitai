@@ -353,9 +353,11 @@ export default function CVScreening() {
       console.error("Webhook error:", webhookError);
     }
     
-    await screenCVs(jobDescription, selectedCVData, user?.id, user?.email);
-    if (!screening) {
+    try {
+      await screenCVs(jobDescription, selectedCVData, user?.id, user?.email);
       setCurrentStep("results");
+    } catch {
+      // Stay on the current step; the hook already surfaced a toast.
     }
   };
 
