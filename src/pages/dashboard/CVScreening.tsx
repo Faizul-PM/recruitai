@@ -32,7 +32,7 @@ interface CV {
   uploaded_at: string;
 }
 
-type Step = "upload" | "job-description" | "results";
+type Step = "job-description" | "upload" | "results";
 
 export default function CVScreening() {
   const { user } = useAuth();
@@ -44,7 +44,7 @@ export default function CVScreening() {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedCVs, setSelectedCVs] = useState<Set<string>>(new Set());
-  const [currentStep, setCurrentStep] = useState<Step>("upload");
+  const [currentStep, setCurrentStep] = useState<Step>("job-description");
   const [jobDescription, setJobDescription] = useState("");
   
   const { screening, results, screenCVs, clearResults } = useScreenCVs();
@@ -323,7 +323,7 @@ export default function CVScreening() {
   };
 
   const handleBackToUpload = () => {
-    setCurrentStep("upload");
+    setCurrentStep("job-description");
     clearResults();
   };
 
@@ -347,8 +347,8 @@ export default function CVScreening() {
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center justify-center gap-2 md:gap-6">
             {[
-              { step: "upload", label: "1. Upload CVs", icon: Upload },
-              { step: "job-description", label: "2. Job Description", icon: FileText },
+              { step: "job-description", label: "1. Job Description", icon: FileText },
+              { step: "upload", label: "2. Select CVs", icon: Upload },
               { step: "results", label: "3. Results", icon: Search },
             ].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function CVScreening() {
                       ? "bg-primary text-primary-foreground shadow-md"
                       : currentStep === "results" && index < 2
                       ? "bg-chart-1/20 text-chart-1"
-                      : currentStep === "job-description" && index === 0
+                      : currentStep === "upload" && index === 0
                       ? "bg-chart-1/20 text-chart-1"
                       : "bg-muted/50 text-muted-foreground"
                   }`}
@@ -372,7 +372,7 @@ export default function CVScreening() {
                 </div>
                 {index < 2 && (
                   <div className={`w-8 h-0.5 hidden md:block transition-colors ${
-                    (currentStep === "results" && index < 2) || (currentStep === "job-description" && index === 0)
+                    (currentStep === "results" && index < 2) || (currentStep === "upload" && index === 0)
                       ? "bg-chart-1/50"
                       : "bg-border"
                   }`} />
@@ -383,16 +383,50 @@ export default function CVScreening() {
         </CardContent>
       </Card>
 
-      {/* Step 1: Upload CVs */}
+      {/* Step 1: Job Description */}
+      {currentStep === "job-description" && (
+        <>
+          <PageHeader
+            title="Job Description"
+            description="Enter the job requirements to match candidates against."
+            icon={<FileText className="w-6 h-6 text-primary" />}
+          />
+
+          <JobDescriptionInput
+            value={jobDescription}
+            onChange={setJobDescription}
+            disabled={screening}
+          />
+          
+          <div className="flex justify-end">
+            <Button 
+              size="lg" 
+              onClick={() => setCurrentStep("upload")} 
+              disabled={!jobDescription.trim()} 
+              className="gap-2 shadow-md"
+            >
+              <Upload className="w-4 h-4" />
+              Next: Select CVs
+            </Button>
+          </div>
+        </>
+      )}
+
+      {/* Step 2: Upload & Select CVs */}
       {currentStep === "upload" && (
         <>
           <PageHeader
             title="Upload & Select CVs"
-            description="Upload candidate CVs and select which ones to screen against a job description."
+            description="Upload candidate CVs and select which ones to screen against your job description."
             icon={<Sparkles className="w-6 h-6 text-primary" />}
+            actions={
+              <Button variant="ghost" size="sm" onClick={() => setCurrentStep("job-description")} className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+            }
           />
 
-          {/* Upload Section */}
           <Card className="overflow-hidden">
             <CardHeader className="border-b bg-muted/30">
               <div className="flex items-center gap-3">
@@ -549,43 +583,11 @@ export default function CVScreening() {
             </CardContent>
           </Card>
 
-          {selectedCVs.size > 0 && (
-            <div className="flex justify-end">
-              <Button size="lg" onClick={handleStartScreening} className="gap-2 shadow-md">
-                <Search className="w-4 h-4" />
-                Screen {selectedCVs.size} CV{selectedCVs.size > 1 ? "s" : ""}
-              </Button>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Step 2: Job Description */}
-      {currentStep === "job-description" && (
-        <>
-          <PageHeader
-            title="Job Description"
-            description={`Enter the job description to screen ${selectedCVs.size} selected CV(s) against.`}
-            icon={<FileText className="w-6 h-6 text-primary" />}
-            actions={
-              <Button variant="ghost" size="sm" onClick={handleBackToUpload} className="gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
-            }
-          />
-
-          <JobDescriptionInput
-            value={jobDescription}
-            onChange={setJobDescription}
-            disabled={screening}
-          />
-          
           <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={handleBackToUpload}>
+            <Button variant="outline" onClick={() => setCurrentStep("job-description")}>
               Back
             </Button>
-            <Button onClick={handleRunScreening} disabled={screening || !jobDescription.trim()} className="gap-2 shadow-md">
+            <Button onClick={handleRunScreening} disabled={screening || selectedCVs.size === 0} className="gap-2 shadow-md">
               {screening ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -594,7 +596,7 @@ export default function CVScreening() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Run AI Screening
+                  Screen {selectedCVs.size} CV{selectedCVs.size !== 1 ? "s" : ""}
                 </>
               )}
             </Button>
@@ -615,9 +617,9 @@ export default function CVScreening() {
                   <Sparkles className="w-4 h-4" />
                   New Screening
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleBackToUpload} className="gap-2">
-                  <Upload className="w-4 h-4" />
-                  Upload More CVs
+                <Button variant="outline" size="sm" onClick={() => setCurrentStep("job-description")} className="gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Start Over
                 </Button>
               </div>
             }
