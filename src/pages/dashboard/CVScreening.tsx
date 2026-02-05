@@ -316,6 +316,43 @@ export default function CVScreening() {
 
   const handleRunScreening = async () => {
     const selectedCVData = cvs.filter(cv => selectedCVs.has(cv.id));
+    
+    // Send job description and selected CVs to webhook
+    try {
+      const cvDetails = selectedCVData.map(cv => {
+        const { data: publicUrlData } = supabase.storage
+          .from("cvs")
+          .getPublicUrl(cv.file_path);
+        
+        return {
+          id: cv.id,
+          fileName: cv.file_name,
+          filePath: cv.file_path,
+          fileSize: cv.file_size,
+          fileUrl: publicUrlData.publicUrl,
+          uploadedAt: cv.uploaded_at,
+        };
+      });
+
+      await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/5d66bc10-e0cb-4954-9e26-1b4e86bdbd63", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "screen_cvs",
+          userId: user?.id,
+          userEmail: user?.email,
+          jobDescription: jobDescription,
+          selectedCVs: cvDetails,
+          totalSelected: selectedCVs.size,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch (webhookError) {
+      console.error("Webhook error:", webhookError);
+    }
+    
     await screenCVs(jobDescription, selectedCVData, user?.id, user?.email);
     if (!screening) {
       setCurrentStep("results");
@@ -401,7 +438,27 @@ export default function CVScreening() {
           <div className="flex justify-end">
             <Button 
               size="lg" 
-              onClick={() => setCurrentStep("upload")} 
+              onClick={async () => {
+                // Send job description to webhook
+                try {
+                  await fetch("https://rahe-123456789.app.n8n.cloud/webhook-test/5d66bc10-e0cb-4954-9e26-1b4e86bdbd63", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      action: "next_select_cvs",
+                      userId: user?.id,
+                      userEmail: user?.email,
+                      jobDescription: jobDescription,
+                      timestamp: new Date().toISOString(),
+                    }),
+                  });
+                } catch (webhookError) {
+                  console.error("Webhook error:", webhookError);
+                }
+                setCurrentStep("upload");
+              }} 
               disabled={!jobDescription.trim()} 
               className="gap-2 shadow-md"
             >
