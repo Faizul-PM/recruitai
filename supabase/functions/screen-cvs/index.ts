@@ -85,15 +85,23 @@ Return ONLY the JSON array, no other text.`;
 
     if (!response.ok) {
       if (response.status === 429) {
+        // Return 200 so the client can handle gracefully without treating it as an invocation failure.
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Rate limit exceeded. Please try again later.",
+            status: 429,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
       if (response.status === 402) {
+        // Return 200 so the client can handle gracefully without treating it as an invocation failure.
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "AI credits exhausted. Please add credits to continue.",
+            status: 402,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
       const errorText = await response.text();
